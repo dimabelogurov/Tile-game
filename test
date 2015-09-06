@@ -1,0 +1,173 @@
+<head></head>
+<body onkeypress="eventKeyHandler(event)">
+<canvas id="canvas" width="400" height="400" style="border:0 solid #000000"></canvas>
+<div id="display"></div>
+
+<h1>How to play:</h1>
+<p>
+WASD keys to move, you are the black square. You cannot move throught red squares, and you win by getting to the green dot within 2 minutes.
+</p>
+
+<script>
+//initialize canvas
+var c = document.getElementById("canvas");
+var ctx = c.getContext("2d");
+
+//stuff about player
+var player = {};
+player.width = 40;
+player.height = 40;
+player.speed = 40;
+player.x = 20;
+player.y = 20;
+
+var win = false;
+var time = 120;
+
+function random(min,max){
+	return Math.floor((Math.random() * max) + min);
+}
+
+function roundTo(int, Round){
+	return (Math.round(int/Round)) * Round;
+} 
+
+//stuff about level
+targetWidth = 20;
+targetHeight = 20;
+
+blockadeWidth = 40;
+blockadeHeight = 40;
+
+function level(targetX,targetY,level){
+	this.blockadeX = [];
+	this.blockadeY = [];
+	this.targetX = targetX;
+	this.targetY = targetY;
+	this.level = level;
+}
+
+var lvl1 = new level(340,340,1);
+lvl1.blockadeX = [60,60,60,60,60,60,60,60,60,60,60,140];
+lvl1.blockadeY = [20,60,140,180,220,260,300,340,380,-20,20];
+
+function line(x1,y1,x2,y2){
+	ctx.beginPath();
+	ctx.moveTo(x1,y1);
+	ctx.lineTo(x2,y2);
+	ctx.stroke();
+}
+
+function grid(){
+	for (x = 0; x < 10; x++){
+		line(x * 40,0,x * 40,400);
+	}
+	for (y = 0; y < 10; y++){
+		line(0,y * 40,400,y * 40);
+	}
+}
+
+function drawLevel(){
+	for(i=0; i<lvl1.blockadeX.length; i++){
+		ctx.fillStyle = "#FF0000";
+		ctx.fillRect(lvl1.blockadeX[i],lvl1.blockadeY[i],blockadeWidth,blockadeHeight);
+	}
+}
+
+function testCollision(x,y){
+	var xCollide = false;
+	var yCollide = false;
+	for(i=0; i<lvl1.blockadeX.length; i++){
+		if(x == lvl1.blockadeX[i]){
+			xCollide = true;
+		}
+	}
+
+	for(i=0; i<lvl1.blockadeY.length; i++){
+		if(y == lvl1.blockadeY[i]){
+			yCollide = true;
+		}
+	}
+
+	return xCollide && yCollide;
+}
+
+//draw ALL THE THINGS
+function draw(){
+	ctx.fillStyle = "#0000FF";
+	ctx.fillRect(0,0,400,400);
+	ctx.fillStyle = "#000000";
+	grid();
+	ctx.fillStyle = "#00FF00";
+	ctx.fillRect(lvl1.targetX + 10,lvl1.targetY + 10,targetWidth,targetHeight);
+	drawLevel();
+	ctx.fillStyle = "#000000";
+	ctx.fillRect(player.x,player.y,player.width,player.height);
+	ctx.stroke();
+}
+
+//key handler
+function eventKeyHandler(event){
+	var kc = event.which || event.keyCode;
+	console.log("key code:" + kc);
+	if(kc == 101){
+		//handles "e"
+		console.log("quit game");
+	}else if(kc == 119 && player.y >= 40 && !testCollision(player.x,player.y - player.speed)){
+		//handles "w"
+		player.y -= player.speed;
+		console.log("up");
+	}else if(kc == 97 && player.x >= 40 && !testCollision(player.x - player.speed, player.y)){
+		//handles "a"
+		player.x -= player.speed;
+		console.log("left");
+	}else if(kc == 115 && player.y + player.speed <= 360 && !testCollision(player.x, player.y + player.speed)){
+		//handles "s"
+		player.y += player.speed;
+		console.log("down");
+	}else if(kc == 100 && player.x + player.speed <= 360 && !testCollision(player.x + player.speed, player.y)){
+		//handles "d"
+		player.x += player.speed;
+		console.log("right");
+	}else{
+		console.log("Player used keypress! It doesn't affect the wild javascript...");
+	}
+		
+	console.log(player.x);
+	console.log(player.y);
+	draw();
+	if(player.x == lvl1.targetX && player.y == lvl1.targetY && time > 0){
+		win = true;
+		document.getElementById("display").innerHTML = "You win!";
+	}
+
+	console.log(testCollision(player.x,player.y));
+}
+
+
+draw();
+
+function countdown(){
+	time--;
+	document.getElementById("display").innerHTML = time;
+	if(time == 0 || win){
+		clearInterval(timer);
+	}
+
+	if(time == 0) {
+		document.getElementById("display").innerHTML = "You lose!";
+	} 
+}
+
+var timer = setInterval(function(){countdown()},1000);
+
+/* LIST OF PLANNED FEATURES
+
+-Some lines will be dotted with either red or green and alternate between the two colors. Players will only be able to cross when it is green.
+
+-Crossing lines will take a certain amount of time, and depending upon the color it will take more or less time.
+
+-Easy way to make user-created levels.
+*/
+</script>
+</body>
